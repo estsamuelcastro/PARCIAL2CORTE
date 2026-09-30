@@ -1,0 +1,962 @@
+<?xml version="1.0"?>
+<robot name="fabrica_monedas_inteligentes_v1">
+
+  <!--
+    Versión corregida y ampliada a partir de maqueta.urdf.
+    Conserva la idea original de fábrica en L, clasificación, brazos y carro,
+    pero añade colisiones, joints móviles, cinco vasos, electrónica representada,
+    tres obstáculos, meta y un carro móvil con ruedas.
+    Las monedas dinámicas se generan desde PyBullet como cuerpos independientes.
+  -->
+
+  <!-- ======================== MATERIALES ======================== -->
+  <material name="blue_metal"><color rgba="0.05 0.15 0.35 1"/></material>
+  <material name="black_rubber"><color rgba="0.04 0.04 0.04 1"/></material>
+  <material name="white_machine"><color rgba="0.95 0.95 0.98 1"/></material>
+  <material name="base_material"><color rgba="0.30 0.30 0.30 1"/></material>
+  <material name="brazo1_material"><color rgba="0.20 0.60 0.80 1"/></material>
+  <material name="brazo2_material"><color rgba="0.90 0.50 0.10 1"/></material>
+  <material name="pinza_material"><color rgba="0.80 0.20 0.20 1"/></material>
+  <material name="dedo_material"><color rgba="0.90 0.90 0.90 1"/></material>
+  <material name="carro_material"><color rgba="0.10 0.30 0.60 1"/></material>
+  <material name="coin10_material"><color rgba="0.72 0.72 0.76 1"/></material>
+  <material name="coin20_material"><color rgba="0.78 0.62 0.24 1"/></material>
+  <material name="coin50_material"><color rgba="0.82 0.50 0.14 1"/></material>
+  <material name="coin1_material"><color rgba="0.88 0.72 0.20 1"/></material>
+  <material name="coin2_material"><color rgba="0.72 0.56 0.18 1"/></material>
+  <material name="obstacle_material"><color rgba="0.55 0.15 0.10 1"/></material>
+  <material name="goal_material"><color rgba="0.10 0.75 0.25 1"/></material>
+  <material name="camera_material"><color rgba="0.06 0.06 0.06 1"/></material>
+  <material name="led_material"><color rgba="1.0 0.85 0.10 1"/></material>
+  <material name="lcd_material"><color rgba="0.05 0.20 0.20 1"/></material>
+
+  <!-- Raíz estática; representa el piso/base de la planta -->
+  <link name="base_planta">
+    <visual><origin xyz="0 0 -0.05" rpy="0 0 0"/><geometry><box size="16.0 12.0 0.1"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 -0.05" rpy="0 0 0"/><geometry><box size="12.0 10.0 0.1"/></geometry></collision>
+  </link>
+  <!-- Cinta superior: de la máquina hacia la derecha -->
+  <link name="cinta_seg1">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg1" type="fixed">
+    <parent link="base_planta"/>
+    <child link="cinta_seg1"/>
+    <origin xyz="1.0 0.0 0.5" rpy="0 0 0"/>
+  </joint>
+  <link name="cinta_seg1_superficie">
+    <visual><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg1_surface" type="fixed">
+    <parent link="cinta_seg1"/>
+    <child link="cinta_seg1_superficie"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="rodillo_s1_1">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s1_1" type="continuous">
+    <parent link="cinta_seg1"/>
+    <child link="rodillo_s1_1"/>
+    <origin xyz="-1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rodillo_s1_2">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s1_2" type="continuous">
+    <parent link="cinta_seg1"/>
+    <child link="rodillo_s1_2"/>
+    <origin xyz="1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <!-- Cinta vertical: descenso por el lado izquierdo -->
+  <link name="cinta_seg2">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg2" type="fixed">
+    <parent link="base_planta"/>
+    <child link="cinta_seg2"/>
+    <origin xyz="-1.0 -2.0 0.5" rpy="0 0 1.5708"/>
+  </joint>
+  <link name="cinta_seg2_superficie">
+    <visual><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg2_surface" type="fixed">
+    <parent link="cinta_seg2"/>
+    <child link="cinta_seg2_superficie"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="rodillo_s2_1">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s2_1" type="continuous">
+    <parent link="cinta_seg2"/>
+    <child link="rodillo_s2_1"/>
+    <origin xyz="-1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rodillo_s2_2">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s2_2" type="continuous">
+    <parent link="cinta_seg2"/>
+    <child link="rodillo_s2_2"/>
+    <origin xyz="1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <!-- Cinta inferior: salida hacia la derecha -->
+  <link name="cinta_seg3">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="4.0 0.5 0.1"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg3" type="fixed">
+    <parent link="base_planta"/>
+    <child link="cinta_seg3"/>
+    <origin xyz="1.0 -4.0 0.5" rpy="0 0 0"/>
+  </joint>
+  <link name="cinta_seg3_superficie">
+    <visual><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0.08" rpy="0 0 0"/><geometry><box size="3.85 0.46 0.06"/></geometry></collision>
+  </link>
+  <joint name="j_cinta_seg3_surface" type="fixed">
+    <parent link="cinta_seg3"/>
+    <child link="cinta_seg3_superficie"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="rodillo_s3_1">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s3_1" type="continuous">
+    <parent link="cinta_seg3"/>
+    <child link="rodillo_s3_1"/>
+    <origin xyz="-1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rodillo_s3_2">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.46"/></geometry></collision>
+    <inertial>
+      <mass value="0.600000"/>
+      <inertia ixx="0.014420" ixy="0" ixz="0" iyy="0.014420" iyz="0" izz="0.007680"/>
+    </inertial>
+  </link>
+  <joint name="j_rodillo_s3_2" type="continuous">
+    <parent link="cinta_seg3"/>
+    <child link="rodillo_s3_2"/>
+    <origin xyz="1.82 0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="4" velocity="30"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <!-- Base de la máquina de alimentación/visión -->
+  <link name="maquina_embalaje_base">
+    <visual><origin xyz="0 0 0.0" rpy="0 0 0"/><geometry><box size="2.0 1.2 0.2"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0.0" rpy="0 0 0"/><geometry><box size="2.0 1.2 0.2"/></geometry></collision>
+    <inertial>
+      <mass value="20.000000"/>
+      <inertia ixx="2.466667" ixy="0" ixz="0" iyy="6.733333" iyz="0" izz="9.066667"/>
+    </inertial>
+  </link>
+  <joint name="j_maquina_base" type="fixed">
+    <parent link="base_planta"/>
+    <child link="maquina_embalaje_base"/>
+    <origin xyz="-3.0 0.0 0.1" rpy="0 0 0"/>
+  </joint>
+  <link name="maquina_embalaje_cuerpo">
+    <visual><origin xyz="0 0 0.75" rpy="0 0 0"/><geometry><box size="1.8 1.2 1.5"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.75" rpy="0 0 0"/><geometry><box size="1.8 1.2 1.5"/></geometry></collision>
+    <inertial>
+      <mass value="80.000000"/>
+      <inertia ixx="24.600000" ixy="0" ixz="0" iyy="36.600000" iyz="0" izz="31.200000"/>
+    </inertial>
+  </link>
+  <joint name="j_maquina_cuerpo" type="fixed">
+    <parent link="maquina_embalaje_base"/>
+    <child link="maquina_embalaje_cuerpo"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <!-- Tolva visual simplificada; las monedas se generan como cuerpos independientes en PyBullet -->
+  <link name="tolva_vision">
+    <visual><origin xyz="0 0 0.325" rpy="0 0 0"/><geometry><box size="0.9 1.0 0.65"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.325" rpy="0 0 0"/><geometry><box size="0.9 1.0 0.65"/></geometry></collision>
+    <inertial>
+      <mass value="8.000000"/>
+      <inertia ixx="0.948333" ixy="0" ixz="0" iyy="0.821667" iyz="0" izz="1.206667"/>
+    </inertial>
+  </link>
+  <joint name="j_tolva_vision" type="fixed">
+    <parent link="base_planta"/>
+    <child link="tolva_vision"/>
+    <origin xyz="-4.0 0.0 1.5" rpy="0 0 -0.18"/>
+  </joint>
+  <link name="vision_mount">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.3 0.3 0.45"/></geometry><material name="camera_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.3 0.3 0.45"/></geometry></collision>
+    <inertial>
+      <mass value="1.000000"/>
+      <inertia ixx="0.024375" ixy="0" ixz="0" iyy="0.024375" iyz="0" izz="0.015000"/>
+    </inertial>
+  </link>
+  <joint name="j_vision_mount" type="fixed">
+    <parent link="maquina_embalaje_cuerpo"/>
+    <child link="vision_mount"/>
+    <origin xyz="-1.1 -0.58 1.2" rpy="0 0 0"/>
+  </joint>
+  <link name="esp32_cam_module">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.16 0.1 0.1"/></geometry><material name="camera_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.16 0.1 0.1"/></geometry></collision>
+    <inertial>
+      <mass value="0.100000"/>
+      <inertia ixx="0.000167" ixy="0" ixz="0" iyy="0.000297" iyz="0" izz="0.000297"/>
+    </inertial>
+  </link>
+  <joint name="j_esp32_cam" type="fixed">
+    <parent link="vision_mount"/>
+    <child link="esp32_cam_module"/>
+    <origin xyz="0.18 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <link name="led_vision">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><cylinder radius="0.035" length="0.02"/></geometry><material name="led_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><cylinder radius="0.035" length="0.02"/></geometry></collision>
+    <inertial>
+      <mass value="0.020000"/>
+      <inertia ixx="0.000007" ixy="0" ixz="0" iyy="0.000007" iyz="0" izz="0.000012"/>
+    </inertial>
+  </link>
+  <joint name="j_led_vision" type="fixed">
+    <parent link="esp32_cam_module"/>
+    <child link="led_vision"/>
+    <origin xyz="0.1 -0.055 0" rpy="0 0 0"/>
+  </joint>
+  <link name="lcd_display">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.85 0.06 0.28"/></geometry><material name="lcd_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.85 0.06 0.28"/></geometry></collision>
+    <inertial>
+      <mass value="0.200000"/>
+      <inertia ixx="0.001367" ixy="0" ixz="0" iyy="0.013348" iyz="0" izz="0.012102"/>
+    </inertial>
+  </link>
+  <joint name="j_lcd_display" type="fixed">
+    <parent link="maquina_embalaje_cuerpo"/>
+    <child link="lcd_display"/>
+    <origin xyz="0 -0.65 0.95" rpy="0 0 0"/>
+  </joint>
+  <link name="soporte_vaso_50">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry></collision>
+  </link>
+  <joint name="j_soporte_vaso_50" type="fixed">
+    <parent link="base_planta"/>
+    <child link="soporte_vaso_50"/>
+    <origin xyz="0.0 -0.78 0.28" rpy="0 0 0"/>
+  </joint>
+  <link name="vaso_50">
+    <visual><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry></collision>
+  </link>
+  <link name="vaso_50_borde">
+    <visual><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry></collision>
+  </link>
+  <joint name="j_vaso_50" type="fixed">
+    <parent link="soporte_vaso_50"/>
+    <child link="vaso_50"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="j_vaso_50_borde" type="fixed">
+    <parent link="vaso_50"/>
+    <child link="vaso_50_borde"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="celda_peso_50">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry></collision>
+  </link>
+  <joint name="j_celda_50" type="fixed">
+    <parent link="soporte_vaso_50"/>
+    <child link="celda_peso_50"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+  <link name="canal_50">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_canal_50" type="fixed">
+    <parent link="base_planta"/>
+    <child link="canal_50"/>
+    <origin xyz="0.0 -0.47 0.44" rpy="0.5 0 0"/>
+  </joint>
+  <link name="compuerta_50">
+    <visual><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.002900" ixy="0" ixz="0" iyy="0.000145" iyz="0" izz="0.003005"/>
+    </inertial>
+  </link>
+  <joint name="joint_compuerta_50" type="revolute">
+    <parent link="base_planta"/>
+    <child link="compuerta_50"/>
+    <origin xyz="0.0 0.2 0.66" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.95" upper="0.35" effort="1.0" velocity="6"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="soporte_vaso_100">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry></collision>
+  </link>
+  <joint name="j_soporte_vaso_100" type="fixed">
+    <parent link="base_planta"/>
+    <child link="soporte_vaso_100"/>
+    <origin xyz="0.6 -0.78 0.28" rpy="0 0 0"/>
+  </joint>
+  <link name="vaso_100">
+    <visual><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry></collision>
+  </link>
+  <link name="vaso_100_borde">
+    <visual><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry></collision>
+  </link>
+  <joint name="j_vaso_100" type="fixed">
+    <parent link="soporte_vaso_100"/>
+    <child link="vaso_100"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="j_vaso_100_borde" type="fixed">
+    <parent link="vaso_100"/>
+    <child link="vaso_100_borde"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="celda_peso_100">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry></collision>
+  </link>
+  <joint name="j_celda_100" type="fixed">
+    <parent link="soporte_vaso_100"/>
+    <child link="celda_peso_100"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+  <link name="canal_100">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_canal_100" type="fixed">
+    <parent link="base_planta"/>
+    <child link="canal_100"/>
+    <origin xyz="0.6 -0.47 0.44" rpy="0.5 0 0"/>
+  </joint>
+  <link name="compuerta_100">
+    <visual><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.002900" ixy="0" ixz="0" iyy="0.000145" iyz="0" izz="0.003005"/>
+    </inertial>
+  </link>
+  <joint name="joint_compuerta_100" type="revolute">
+    <parent link="base_planta"/>
+    <child link="compuerta_100"/>
+    <origin xyz="0.6 0.2 0.66" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.95" upper="0.35" effort="1.0" velocity="6"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="soporte_vaso_200">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry></collision>
+  </link>
+  <joint name="j_soporte_vaso_200" type="fixed">
+    <parent link="base_planta"/>
+    <child link="soporte_vaso_200"/>
+    <origin xyz="1.2 -0.78 0.28" rpy="0 0 0"/>
+  </joint>
+  <link name="vaso_200">
+    <visual><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry></collision>
+  </link>
+  <link name="vaso_200_borde">
+    <visual><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry></collision>
+  </link>
+  <joint name="j_vaso_200" type="fixed">
+    <parent link="soporte_vaso_200"/>
+    <child link="vaso_200"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="j_vaso_200_borde" type="fixed">
+    <parent link="vaso_200"/>
+    <child link="vaso_200_borde"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="celda_peso_200">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry></collision>
+  </link>
+  <joint name="j_celda_200" type="fixed">
+    <parent link="soporte_vaso_200"/>
+    <child link="celda_peso_200"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+  <link name="canal_200">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_canal_200" type="fixed">
+    <parent link="base_planta"/>
+    <child link="canal_200"/>
+    <origin xyz="1.2 -0.47 0.44" rpy="0.5 0 0"/>
+  </joint>
+  <link name="compuerta_200">
+    <visual><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.002900" ixy="0" ixz="0" iyy="0.000145" iyz="0" izz="0.003005"/>
+    </inertial>
+  </link>
+  <joint name="joint_compuerta_200" type="revolute">
+    <parent link="base_planta"/>
+    <child link="compuerta_200"/>
+    <origin xyz="1.2 0.2 0.66" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.95" upper="0.35" effort="1.0" velocity="6"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="soporte_vaso_500">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry></collision>
+  </link>
+  <joint name="j_soporte_vaso_500" type="fixed">
+    <parent link="base_planta"/>
+    <child link="soporte_vaso_500"/>
+    <origin xyz="1.8 -0.78 0.28" rpy="0 0 0"/>
+  </joint>
+  <link name="vaso_500">
+    <visual><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry></collision>
+  </link>
+  <link name="vaso_500_borde">
+    <visual><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry></collision>
+  </link>
+  <joint name="j_vaso_500" type="fixed">
+    <parent link="soporte_vaso_500"/>
+    <child link="vaso_500"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="j_vaso_500_borde" type="fixed">
+    <parent link="vaso_500"/>
+    <child link="vaso_500_borde"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="celda_peso_500">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry></collision>
+  </link>
+  <joint name="j_celda_500" type="fixed">
+    <parent link="soporte_vaso_500"/>
+    <child link="celda_peso_500"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+  <link name="canal_500">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_canal_500" type="fixed">
+    <parent link="base_planta"/>
+    <child link="canal_500"/>
+    <origin xyz="1.8 -0.47 0.44" rpy="0.5 0 0"/>
+  </joint>
+  <link name="compuerta_500">
+    <visual><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.002900" ixy="0" ixz="0" iyy="0.000145" iyz="0" izz="0.003005"/>
+    </inertial>
+  </link>
+  <joint name="joint_compuerta_500" type="revolute">
+    <parent link="base_planta"/>
+    <child link="compuerta_500"/>
+    <origin xyz="1.8 0.2 0.66" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.95" upper="0.35" effort="1.0" velocity="6"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="soporte_vaso_1000">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.42 0.42 0.08"/></geometry></collision>
+  </link>
+  <joint name="j_soporte_vaso_1000" type="fixed">
+    <parent link="base_planta"/>
+    <child link="soporte_vaso_1000"/>
+    <origin xyz="2.4 -0.78 0.28" rpy="0 0 0"/>
+  </joint>
+  <link name="vaso_1000">
+    <visual><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry><material name="white_machine"/></visual>
+    <collision><origin xyz="0 0 0.28" rpy="0 0 0"/><geometry><cylinder radius="0.2" length="0.55"/></geometry></collision>
+  </link>
+  <link name="vaso_1000_borde">
+    <visual><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.56" rpy="0 0 0"/><geometry><cylinder radius="0.22" length="0.04"/></geometry></collision>
+  </link>
+  <joint name="j_vaso_1000" type="fixed">
+    <parent link="soporte_vaso_1000"/>
+    <child link="vaso_1000"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <joint name="j_vaso_1000_borde" type="fixed">
+    <parent link="vaso_1000"/>
+    <child link="vaso_1000_borde"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="celda_peso_1000">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry><material name="blue_metal"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.28 0.28 0.04"/></geometry></collision>
+  </link>
+  <joint name="j_celda_1000" type="fixed">
+    <parent link="soporte_vaso_1000"/>
+    <child link="celda_peso_1000"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+  <link name="canal_1000">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.18 0.65 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_canal_1000" type="fixed">
+    <parent link="base_planta"/>
+    <child link="canal_1000"/>
+    <origin xyz="2.4 -0.47 0.44" rpy="0.5 0 0"/>
+  </joint>
+  <link name="compuerta_1000">
+    <visual><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 -0.24 0" rpy="0 0 0"/><geometry><box size="0.1 0.48 0.04"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.002900" ixy="0" ixz="0" iyy="0.000145" iyz="0" izz="0.003005"/>
+    </inertial>
+  </link>
+  <joint name="joint_compuerta_1000" type="revolute">
+    <parent link="base_planta"/>
+    <child link="compuerta_1000"/>
+    <origin xyz="2.4 0.2 0.66" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.95" upper="0.35" effort="1.0" velocity="6"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="brazo1_base_link">
+    <visual><origin xyz="0 0 0.07" rpy="0 0 0"/><geometry><cylinder radius="0.24" length="0.14"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.07" rpy="0 0 0"/><geometry><cylinder radius="0.24" length="0.14"/></geometry></collision>
+    <inertial>
+      <mass value="4.000000"/>
+      <inertia ixx="0.064133" ixy="0" ixz="0" iyy="0.064133" iyz="0" izz="0.115200"/>
+    </inertial>
+  </link>
+  <joint name="joint_brazo1_a_planta" type="fixed">
+    <parent link="base_planta"/>
+    <child link="brazo1_base_link"/>
+    <origin xyz="-1.6 -0.9 0.5" rpy="0 0 0"/>
+  </joint>
+  <link name="brazo1_link">
+    <visual><origin xyz="0.35 0 0" rpy="0 0 0"/><geometry><box size="0.7 0.12 0.12"/></geometry><material name="brazo1_material"/></visual>
+    <collision><origin xyz="0.35 0 0" rpy="0 0 0"/><geometry><box size="0.7 0.12 0.12"/></geometry></collision>
+    <inertial>
+      <mass value="1.500000"/>
+      <inertia ixx="0.003600" ixy="0" ixz="0" iyy="0.063050" iyz="0" izz="0.063050"/>
+    </inertial>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <parent link="brazo1_base_link"/>
+    <child link="brazo1_link"/>
+    <origin xyz="0 0 0.14" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="8" velocity="3"/>
+    <dynamics damping="0.12" friction="0.02"/>
+  </joint>
+  <link name="brazo1_seg2">
+    <visual><origin xyz="0.275 0 0" rpy="0 0 0"/><geometry><box size="0.55 0.1 0.1"/></geometry><material name="brazo2_material"/></visual>
+    <collision><origin xyz="0.275 0 0" rpy="0 0 0"/><geometry><box size="0.55 0.1 0.1"/></geometry></collision>
+    <inertial>
+      <mass value="1.000000"/>
+      <inertia ixx="0.001667" ixy="0" ixz="0" iyy="0.026042" iyz="0" izz="0.026042"/>
+    </inertial>
+  </link>
+  <joint name="joint_2" type="revolute">
+    <parent link="brazo1_link"/>
+    <child link="brazo1_seg2"/>
+    <origin xyz="0.7 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.6" upper="2.6" effort="6" velocity="3"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+  <link name="gripper_base">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.14 0.16 0.08"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.14 0.16 0.08"/></geometry></collision>
+    <inertial>
+      <mass value="0.400000"/>
+      <inertia ixx="0.001067" ixy="0" ixz="0" iyy="0.000867" iyz="0" izz="0.001507"/>
+    </inertial>
+  </link>
+  <joint name="joint_gripper" type="fixed">
+    <parent link="brazo1_seg2"/>
+    <child link="gripper_base"/>
+    <origin xyz="0.58 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="dedo_izquierdo">
+    <visual><origin xyz="0 -0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry><material name="dedo_material"/></visual>
+    <collision><origin xyz="0 -0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.000346" ixy="0" ixz="0" iyy="0.000260" iyz="0" izz="0.000117"/>
+    </inertial>
+  </link>
+  <joint name="joint_dedo_izq" type="fixed">
+    <parent link="gripper_base"/>
+    <child link="dedo_izquierdo"/>
+    <origin xyz="0.0 -0.07 0.04" rpy="0 0 0"/>
+  </joint>
+  <link name="dedo_derecho">
+    <visual><origin xyz="0 0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry><material name="dedo_material"/></visual>
+    <collision><origin xyz="0 0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.000346" ixy="0" ixz="0" iyy="0.000260" iyz="0" izz="0.000117"/>
+    </inertial>
+  </link>
+  <joint name="joint_dedo_der" type="fixed">
+    <parent link="gripper_base"/>
+    <child link="dedo_derecho"/>
+    <origin xyz="0.0 0.07 0.04" rpy="0 0 0"/>
+  </joint>
+  <link name="brazo2_base_link">
+    <visual><origin xyz="0 0 0.07" rpy="0 0 0"/><geometry><cylinder radius="0.24" length="0.14"/></geometry><material name="base_material"/></visual>
+    <collision><origin xyz="0 0 0.07" rpy="0 0 0"/><geometry><cylinder radius="0.24" length="0.14"/></geometry></collision>
+    <inertial>
+      <mass value="4.000000"/>
+      <inertia ixx="0.064133" ixy="0" ixz="0" iyy="0.064133" iyz="0" izz="0.115200"/>
+    </inertial>
+  </link>
+  <joint name="joint_brazo2_a_planta" type="fixed">
+    <parent link="base_planta"/>
+    <child link="brazo2_base_link"/>
+    <origin xyz="2.8 -4.8 0.5" rpy="0 0 0"/>
+  </joint>
+  <link name="brazo2_seg1">
+    <visual><origin xyz="0.325 0 0" rpy="0 0 0"/><geometry><box size="0.65 0.12 0.12"/></geometry><material name="brazo1_material"/></visual>
+    <collision><origin xyz="0.325 0 0" rpy="0 0 0"/><geometry><box size="0.65 0.12 0.12"/></geometry></collision>
+    <inertial>
+      <mass value="1.500000"/>
+      <inertia ixx="0.003600" ixy="0" ixz="0" iyy="0.054613" iyz="0" izz="0.054613"/>
+    </inertial>
+  </link>
+  <joint name="joint_b2_1" type="revolute">
+    <parent link="brazo2_base_link"/>
+    <child link="brazo2_seg1"/>
+    <origin xyz="0 0 0.14" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="8" velocity="3"/>
+    <dynamics damping="0.12" friction="0.02"/>
+  </joint>
+  <link name="brazo2_seg2">
+    <visual><origin xyz="0.275 0 0" rpy="0 0 0"/><geometry><box size="0.55 0.1 0.1"/></geometry><material name="brazo2_material"/></visual>
+    <collision><origin xyz="0.275 0 0" rpy="0 0 0"/><geometry><box size="0.55 0.1 0.1"/></geometry></collision>
+    <inertial>
+      <mass value="1.000000"/>
+      <inertia ixx="0.001667" ixy="0" ixz="0" iyy="0.026042" iyz="0" izz="0.026042"/>
+    </inertial>
+  </link>
+  <joint name="joint_b2_2" type="revolute">
+    <parent link="brazo2_seg1"/>
+    <child link="brazo2_seg2"/>
+    <origin xyz="0.65 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.6" upper="2.6" effort="6" velocity="3"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+  <link name="brazo2_gripper_base">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.14 0.16 0.08"/></geometry><material name="pinza_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.14 0.16 0.08"/></geometry></collision>
+    <inertial>
+      <mass value="0.400000"/>
+      <inertia ixx="0.001067" ixy="0" ixz="0" iyy="0.000867" iyz="0" izz="0.001507"/>
+    </inertial>
+  </link>
+  <joint name="joint_b2_gripper" type="fixed">
+    <parent link="brazo2_seg2"/>
+    <child link="brazo2_gripper_base"/>
+    <origin xyz="0.55 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="brazo2_dedo_izquierdo">
+    <visual><origin xyz="0 -0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry><material name="dedo_material"/></visual>
+    <collision><origin xyz="0 -0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.000346" ixy="0" ixz="0" iyy="0.000260" iyz="0" izz="0.000117"/>
+    </inertial>
+  </link>
+  <joint name="joint_b2_dedo_izq" type="fixed">
+    <parent link="brazo2_gripper_base"/>
+    <child link="brazo2_dedo_izquierdo"/>
+    <origin xyz="0 -0.07 0.04" rpy="0 0 0"/>
+  </joint>
+  <link name="brazo2_dedo_derecho">
+    <visual><origin xyz="0 0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry><material name="dedo_material"/></visual>
+    <collision><origin xyz="0 0.05 0.07" rpy="0 0 0"/><geometry><box size="0.035 0.09 0.14"/></geometry></collision>
+    <inertial>
+      <mass value="0.150000"/>
+      <inertia ixx="0.000346" ixy="0" ixz="0" iyy="0.000260" iyz="0" izz="0.000117"/>
+    </inertial>
+  </link>
+  <joint name="joint_b2_dedo_der" type="fixed">
+    <parent link="brazo2_gripper_base"/>
+    <child link="brazo2_dedo_derecho"/>
+    <origin xyz="0 0.07 0.04" rpy="0 0 0"/>
+  </joint>
+  <!-- Zona donde el carro se posiciona para recibir un vaso -->
+  <link name="zona_recoleccion">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="1.0 1.0 0.05"/></geometry><material name="goal_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="1.0 1.0 0.05"/></geometry></collision>
+  </link>
+  <joint name="j_zona_recoleccion" type="fixed">
+    <parent link="base_planta"/>
+    <child link="zona_recoleccion"/>
+    <origin xyz="3.6 -1.0 0.03" rpy="0 0 0"/>
+  </joint>
+  <!-- Base móvil con 3 grados de libertad: X, Y y yaw. -->
+  <link name="carro_base_x">
+    <inertial><mass value="0.001"/><inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/></inertial>
+  </link>
+  <joint name="j_carro_x" type="prismatic">
+    <parent link="base_planta"/><child link="carro_base_x"/>
+    <origin xyz="4.4 -5.8 0.0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.5" upper="5.5" effort="100" velocity="2.0"/>
+    <dynamics damping="1.0" friction="0.05"/>
+  </joint>
+  <link name="carro_base_y">
+    <inertial><mass value="0.001"/><inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/></inertial>
+  </link>
+  <joint name="j_carro_y" type="prismatic">
+    <parent link="carro_base_x"/><child link="carro_base_y"/>
+    <origin xyz="0 0 0.34" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.0" upper="6.0" effort="100" velocity="2.0"/>
+    <dynamics damping="1.0" friction="0.05"/>
+  </joint>
+  <!-- Base móvil del recolector -->
+  <link name="carro_recolector_chasis">
+    <visual><origin xyz="0 0 0.11" rpy="0 0 0"/><geometry><box size="1.2 0.8 0.22"/></geometry><material name="carro_material"/></visual>
+    <collision><origin xyz="0 0 0.11" rpy="0 0 0"/><geometry><box size="1.2 0.8 0.22"/></geometry></collision>
+    <inertial>
+      <mass value="18.000000"/>
+      <inertia ixx="1.032600" ixy="0" ixz="0" iyy="2.232600" iyz="0" izz="3.120000"/>
+    </inertial>
+  </link>
+  <joint name="j_carro_yaw" type="revolute">
+    <parent link="carro_base_y"/>
+    <child link="carro_recolector_chasis"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="40" velocity="3.0"/>
+    <dynamics damping="0.5" friction="0.02"/>
+  </joint>
+  <link name="carro_canastilla">
+    <visual><origin xyz="0 0 0.27" rpy="0 0 0"/><geometry><box size="0.82 0.6 0.28"/></geometry><material name="carro_material"/></visual>
+    <collision><origin xyz="0 0 0.27" rpy="0 0 0"/><geometry><box size="0.82 0.6 0.28"/></geometry></collision>
+    <inertial>
+      <mass value="2.000000"/>
+      <inertia ixx="0.073067" ixy="0" ixz="0" iyy="0.125133" iyz="0" izz="0.172067"/>
+    </inertial>
+  </link>
+  <joint name="j_carro_canastilla" type="fixed">
+    <parent link="carro_recolector_chasis"/>
+    <child link="carro_canastilla"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="rueda_FL">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry></collision>
+    <inertial>
+      <mass value="0.700000"/>
+      <inertia ixx="0.005320" ixy="0" ixz="0" iyy="0.005320" iyz="0" izz="0.008960"/>
+    </inertial>
+  </link>
+  <joint name="joint_rueda_FL" type="continuous">
+    <parent link="carro_recolector_chasis"/>
+    <child link="rueda_FL"/>
+    <origin xyz="0.4 0.44 -0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="8" velocity="25"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rueda_FR">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry></collision>
+    <inertial>
+      <mass value="0.700000"/>
+      <inertia ixx="0.005320" ixy="0" ixz="0" iyy="0.005320" iyz="0" izz="0.008960"/>
+    </inertial>
+  </link>
+  <joint name="joint_rueda_FR" type="continuous">
+    <parent link="carro_recolector_chasis"/>
+    <child link="rueda_FR"/>
+    <origin xyz="0.4 -0.44 -0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="8" velocity="25"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rueda_RL">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry></collision>
+    <inertial>
+      <mass value="0.700000"/>
+      <inertia ixx="0.005320" ixy="0" ixz="0" iyy="0.005320" iyz="0" izz="0.008960"/>
+    </inertial>
+  </link>
+  <joint name="joint_rueda_RL" type="continuous">
+    <parent link="carro_recolector_chasis"/>
+    <child link="rueda_RL"/>
+    <origin xyz="-0.4 0.44 -0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="8" velocity="25"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="rueda_RR">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry><material name="black_rubber"/></visual>
+    <collision><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.16" length="0.12"/></geometry></collision>
+    <inertial>
+      <mass value="0.700000"/>
+      <inertia ixx="0.005320" ixy="0" ixz="0" iyy="0.005320" iyz="0" izz="0.008960"/>
+    </inertial>
+  </link>
+  <joint name="joint_rueda_RR" type="continuous">
+    <parent link="carro_recolector_chasis"/>
+    <child link="rueda_RR"/>
+    <origin xyz="-0.4 -0.44 -0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="8" velocity="25"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="sensor_frontal">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.35 0.06 0.1"/></geometry><material name="camera_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.35 0.06 0.1"/></geometry></collision>
+    <inertial>
+      <mass value="0.100000"/>
+      <inertia ixx="0.000113" ixy="0" ixz="0" iyy="0.001104" iyz="0" izz="0.001051"/>
+    </inertial>
+  </link>
+  <joint name="j_sensor_frontal" type="fixed">
+    <parent link="carro_recolector_chasis"/>
+    <child link="sensor_frontal"/>
+    <origin xyz="0.62 0 0.18" rpy="0 0 0"/>
+  </joint>
+  <link name="obstaculo_1">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.6 1.2 0.7"/></geometry><material name="obstacle_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.6 1.2 0.7"/></geometry></collision>
+  </link>
+  <joint name="j_obstaculo_1" type="fixed">
+    <parent link="base_planta"/>
+    <child link="obstaculo_1"/>
+    <origin xyz="6.0 -5.1 0.35" rpy="0 0 0"/>
+  </joint>
+  <link name="obstaculo_2">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.8 0.7 0.7"/></geometry><material name="obstacle_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.8 0.7 0.7"/></geometry></collision>
+  </link>
+  <joint name="j_obstaculo_2" type="fixed">
+    <parent link="base_planta"/>
+    <child link="obstaculo_2"/>
+    <origin xyz="7.1 -3.6 0.35" rpy="0 0 0"/>
+  </joint>
+  <link name="obstaculo_3">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.6 1.0 0.7"/></geometry><material name="obstacle_material"/></visual>
+    <collision><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.6 1.0 0.7"/></geometry></collision>
+  </link>
+  <joint name="j_obstaculo_3" type="fixed">
+    <parent link="base_planta"/>
+    <child link="obstaculo_3"/>
+    <origin xyz="5.8 -2.2 0.35" rpy="0 0 0"/>
+  </joint>
+  <link name="inicio_navegacion">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><cylinder radius="0.28" length="0.03"/></geometry><material name="blue_metal"/></visual>
+  </link>
+  <joint name="j_inicio_navegacion" type="fixed">
+    <parent link="base_planta"/>
+    <child link="inicio_navegacion"/>
+    <origin xyz="4.4 -5.8 0.01" rpy="0 0 0"/>
+  </joint>
+  <link name="meta_navegacion">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><cylinder radius="0.42" length="0.04"/></geometry><material name="goal_material"/></visual>
+  </link>
+  <joint name="j_meta_navegacion" type="fixed">
+    <parent link="base_planta"/>
+    <child link="meta_navegacion"/>
+    <origin xyz="8.2 -1.5 0.02" rpy="0 0 0"/>
+  </joint>
+  <link name="ruta_marca_1">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.08 0.08 0.02"/></geometry><material name="goal_material"/></visual>
+  </link>
+  <joint name="j_ruta_1" type="fixed">
+    <parent link="base_planta"/>
+    <child link="ruta_marca_1"/>
+    <origin xyz="5.1 -4.8 0.02" rpy="0 0 0"/>
+  </joint>
+  <link name="ruta_marca_2">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.08 0.08 0.02"/></geometry><material name="goal_material"/></visual>
+  </link>
+  <joint name="j_ruta_2" type="fixed">
+    <parent link="base_planta"/>
+    <child link="ruta_marca_2"/>
+    <origin xyz="6.5 -3.2 0.02" rpy="0 0 0"/>
+  </joint>
+  <link name="ruta_marca_3">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><box size="0.08 0.08 0.02"/></geometry><material name="goal_material"/></visual>
+  </link>
+  <joint name="j_ruta_3" type="fixed">
+    <parent link="base_planta"/>
+    <child link="ruta_marca_3"/>
+    <origin xyz="6.2 -2.0 0.02" rpy="0 0 0"/>
+  </joint>
+</robot>
