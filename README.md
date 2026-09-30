@@ -1,55 +1,19 @@
-# Sistema logístico de monedas inteligentes — entrega final
+# PARCIAL CORTE 2 MICROS SAMUEL CASTRO - OSCAR JUNCO - NICOLAS ROZO
 
-Este paquete organiza la entrega de la etapa solicitada en cuatro objetivos: arquitectura, diseño mecánico/electrónico, simulación PyBullet e integración ESP32 + Streamlit. La moneda de trabajo es el peso colombiano (COP).
+En este escrito se resumirá el funcionamiento general del proyecto el cual incluye:
+- Maqueta funcional 3d en pybullet
+- diagrama de bloques que resume el funcionamiento generla del sistema
+- Bosquejo del esquema eléctrico
+- App en streamlit vinculada con esp32
 
-## Qué contiene
+El esquema general de como funcionará la maqueta se puede observar en el siguiente video: https://drive.google.com/file/d/1PH5Jgtv4FQs_7Nv_Evh7C5i0IYT5XCkd/view?usp=sharing
+en él se puede observar el modelado 3D y una simulación del funcionamiento por medio de Pybullet, en él se evidencia como el sistema clasificara las monedas dependiendo de su denominación, además este sistema cuenta con una combinación de teclas que permite ingresar monedas adicionales a las que se ven al inicio las cuales son predeterminadas. Este video también simula de forma practica el movimiento del carro transportador, el cual se desplaza por medio de algunos obstaculos.
+Esta maqueta 3D se vincula con un app en stream lit la cual contiene una vinculación por wifi a la ESP-32 la cual se encarga de procesar los datos que el archivo urdf extrae del funcionamiento de la maqueta en formato .json . csv, los cuales contienen el conteo de las monedas por denominacion, recorriedo del carro y demas funciones que se pueden evidenciar en las siguientes imagenes y en el archivo cargado en el repositorio llamado app.py. 
+<img width="1817" height="963" alt="Captura de pantalla 2026-09-29 233025" src="https://github.com/user-attachments/assets/6ff584d2-93cd-4ef8-9b22-5bc6651d98af" />
+<img width="1841" height="916" alt="image" src="https://github.com/user-attachments/assets/17096242-d62b-4b87-b7de-35233e4fb638" />
 
-- `urdf/maqueta_base_original.urdf`: copia de la base entregada para el proyecto.
-- `urdf/maqueta_proyecto.urdf`: adaptación ampliada para cinco denominaciones colombianas ($50, $100, $200, $500 y $1.000), compuertas, recipientes, sensores/electrónica representados, carro recolector, 3 obstáculos y meta.
-- `simulation/main.py`: simulación funcional en PyBullet que carga el URDF, clasifica monedas, actualiza métricas y ejecuta la ruta con tres obstáculos.
-- `dashboard/app.py`: dashboard Streamlit con cantidad, peso, valor, estado, distribución por denominación, ruta y asistente de datos.
-- `firmware/`: programas Arduino para el ESP32 actuador y ESP32-CAM.
-- `mechanical/cad/coin_sorter.scad`: CAD paramétrico de referencia en OpenSCAD para tolva, banda, estaciones y compuertas.
-- `mechanical/drawings/`: plano conceptual con cotas principales.
-- `electrical/`: diagrama de conexiones y alimentación.
-- `docs/`: arquitectura, requisitos, materiales, integración y plan de validación.
-- `data/`: CSV de demostración y archivo de telemetría que la simulación genera.
+Finalmente podemos evidenciar en la siguiente imagen el diagrama de bloques que resume el funcionamiento generla del proyecto:
+<img width="1062" height="570" alt="Captura de pantalla 2026-09-29 231457" src="https://github.com/user-attachments/assets/4406793a-455f-4b69-861c-1afa5f2f4193" />
+Y el boceto primitivo del modelo CAD del proyecto:
+<img width="775" height="446" alt="Captura de pantalla 2026-09-29 231019" src="https://github.com/user-attachments/assets/9e57b9c9-148c-41c5-9122-9d81f32a6b8f" />
 
-## Instalación
-
-En VS Code, abrir esta carpeta y usar el terminal de la carpeta raíz:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-## Ejecutar PyBullet
-
-```powershell
-.\.venv\Scripts\python.exe simulation\main.py
-```
-
-Controles durante la simulación: `1`=$50, `2`=$100, `3`=$200, `4`=$500, `5`=$1.000; `R` reinicia, `SPACE` pausa/continúa y `ESC` cierra.
-
-Al finalizar, se actualizan:
-
-- `data/live_telemetry.csv`
-- `data/live_summary.json`
-
-## Ejecutar Streamlit
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run dashboard\app.py
-```
-
-En el panel lateral se puede introducir la IP del ESP32. El botón de consulta usa `GET /status` y los comandos de clasificación utilizan `GET /sort?value=...`.
-
-## Integración física prevista
-
-La primera integración inalámbrica usa Wi-Fi y HTTP/JSON porque permite probar rápidamente el enlace ESP32 ↔ PC. La cámara ESP32-CAM queda preparada para captura local y evolución posterior hacia clasificación por visión en el PC.
-
-## Alcance y honestidad de la evidencia
-
-Este paquete deja implementada y documentada la parte de diseño, simulación, software de supervisión y firmware de integración. La construcción física, calibración real de sensores y pruebas con monedas reales requieren el montaje y las mediciones en laboratorio; no se presenta este archivo como evidencia de una prueba física que no se haya realizado.
