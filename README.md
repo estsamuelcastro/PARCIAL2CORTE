@@ -17,3 +17,5 @@ Finalmente podemos evidenciar en la siguiente imagen el diagrama de bloques que 
 Y el boceto primitivo del modelo CAD del proyecto:
 <img width="775" height="446" alt="Captura de pantalla 2026-09-29 231019" src="https://github.com/user-attachments/assets/9e57b9c9-148c-41c5-9122-9d81f32a6b8f" />
 
+En este repositorio se incluyen los archivos del proyecto, el urdf de la maqueta 3d, el app.py de la aplicación en streamlit y el codigo cargado a la ESP-32
+
