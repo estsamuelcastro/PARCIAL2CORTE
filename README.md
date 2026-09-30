@@ -16,6 +16,8 @@ Finalmente podemos evidenciar en la siguiente imagen el diagrama de bloques que 
 <img width="1062" height="570" alt="Captura de pantalla 2026-09-29 231457" src="https://github.com/user-attachments/assets/4406793a-455f-4b69-861c-1afa5f2f4193" />
 Y el boceto primitivo del modelo CAD del proyecto:
 <img width="775" height="446" alt="Captura de pantalla 2026-09-29 231019" src="https://github.com/user-attachments/assets/9e57b9c9-148c-41c5-9122-9d81f32a6b8f" />
+Y un esquema que simula el montaje electrico de la banda clasificadora:
+<img width="1536" height="1024" alt="esquemaelec" src="https://github.com/user-attachments/assets/71362d7c-e081-4ae5-b702-80dfeb321784" />
 
 En este repositorio se incluyen los archivos del proyecto, el urdf de la maqueta 3d, el app.py de la aplicación en streamlit y el codigo cargado a la ESP-32
 
